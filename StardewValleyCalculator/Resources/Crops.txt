@@ -1,0 +1,34 @@
+Blue Jazz	Spring	30	P	50	P	7	
+Cauliflower	Spring	80	P	175	P	12	
+Garlic	Spring	40	P	60		4	
+Green Bean	Spring	60	P	40	P	10	3
+Kale	Spring	70	P	110	P	6	
+Parsnip	Spring	20	P	35	P	4	
+Potato	Spring	50	P	96	P	6	
+Rhubarb	Spring	100	D	220		13	
+Strawberry	Spring	100	P	120	P	8	4
+Tulip	Spring	20	P	30		6	
+Blueberry	Summer	80	P	280		14	4
+Hops	Summer	60	P	25		11	1
+Hot Pepper	Summer	40		40		5	3
+Melon	Summer	80		250		12	
+Peppers	Summer	40	P	40		5	3
+Poppy	Summer	100	P	140		7	
+Radish	Summer	40	P	90		6	
+Red Cabbage	Summer	100		260		9	
+Summer Spangle	Summer	50	P	90		8	
+Starfruit	Summer	400	D	800		13	
+Tomato	Summer	50	P	66		11	4
+Wheat	Summer	10	P	25		4	
+Amaranth	Fall	70	P	165	P	7	
+Artichoke	Fall	30		160		8	
+Beet	Fall	20	D	100		6	
+Bok Choy	Fall	50	P	80		4	
+Cranberry	Fall	240	P	273		7	5
+Eggplant	Fall	20	P	60		5	5
+Fairy Rose	Fall	200	P	290		12	
+Grapes	Fall	60	P	80		10	3
+Pumpkin	Fall	100	P	320		13	
+Rare Seed	Fall	1000	G	3000		24	
+Sunflower	Fall	200	P	80		8	
+Yam	Fall	60	P	160		10	

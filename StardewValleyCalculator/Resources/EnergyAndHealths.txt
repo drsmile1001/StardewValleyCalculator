@@ -1,0 +1,22 @@
+﻿Amaranth	50	20
+Blueberry	25	10
+Cauliflower	75	30
+Corn	25	10
+Cranberry	38	15
+Eggplant	20	8
+Green Bean	25	10
+Hops	45	18
+Jazz	45	18
+Kale	50	20
+Melon	113	45
+Parsnip	25	10
+Peppers	13	5
+Poppy	45	18
+Potato	25	10
+Pumpkin	0	0
+Radish	45	18
+Red Cabbage	75	30
+Spangle	45	18
+Starfruit	125	50
+Tomato	20	8
+Wheat	0	0
