@@ -18,5 +18,7 @@ namespace StardewValleyCalculator
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new CropInfoForm());
         }
+
+        public static Data Data { get; private set; } = new Data();
     }
 }

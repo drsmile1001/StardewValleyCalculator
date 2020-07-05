@@ -19,11 +19,10 @@ namespace StardewValleyCalculator
         public FishInfoForm()
         {
             InitializeComponent();
+            Data = Program.Data;
         }
 
-        public List<Location> LocationList { get; set; }
-
-        public List<Fish> FishList { get; set; }
+        public Data Data { get; }
 
         private void FishInfoForm_Load(object sender, EventArgs e)
         {
@@ -35,7 +34,7 @@ namespace StardewValleyCalculator
             var deserializer = new Deserializer();
             var fishYamlObject = deserializer.Deserialize(new StringReader(Resources.Fish));
             var fishJToken = JToken.FromObject(fishYamlObject);
-            FishList = ((JObject) fishJToken["content"]).Properties().Select(pro => new
+            Data.FishList = ((JObject) fishJToken["content"]).Properties().Select(pro => new
             {
                 Id = int.Parse(pro.Name),
                 Value = pro.Value.Value<string>().Split('/')
@@ -52,7 +51,7 @@ namespace StardewValleyCalculator
                 }).ToList();
             var locationObject = deserializer.Deserialize(new StringReader(Resources.Locations));
             var locationJToken = JToken.FromObject(locationObject);
-            LocationList = ((JObject) locationJToken["content"]).Properties().Select(pro => new
+            Data.LocationList = ((JObject) locationJToken["content"]).Properties().Select(pro => new
             {
                 Location = pro.Name,
                 Value = pro.Value.Value<string>().Split('/')
@@ -77,7 +76,7 @@ namespace StardewValleyCalculator
             }).ToList();
 
             List<string> fishNameCbItem = new List<string> {"Any"};
-            fishNameCbItem.AddRange(FishList.Select(fish => fish.Name));
+            fishNameCbItem.AddRange(Data.FishList.Select(fish => fish.Name));
 
             cbFishName.DataSource = fishNameCbItem;
             cbFishName.SelectedIndex = 0;
@@ -86,7 +85,7 @@ namespace StardewValleyCalculator
             cbSeason.SelectedIndex = 0;
 
             List<string> locationCbItem = new List<string> {"Any"};
-            locationCbItem.AddRange(LocationList.Select(loc=>loc.Name));
+            locationCbItem.AddRange(Data.LocationList.Select(loc=>loc.Name));
             cbLocation.DataSource = locationCbItem;
             cbLocation.SelectedIndex = 0;
 
@@ -102,11 +101,11 @@ namespace StardewValleyCalculator
             {
                 return;
             }
-            var locQuery = from location in LocationList
+            var locQuery = from location in Data.LocationList
                 from seasonFishList in location.Fish
                 where seasonFishList.Value != null
                 from idAndState in seasonFishList.Value
-                let fishFind = FishList.First(fish => fish.Id == idAndState.Id)
+                let fishFind = Data.FishList.First(fish => fish.Id == idAndState.Id)
                 select new ShowFishInfo
                 {
                     Fish = fishFind,
@@ -143,11 +142,12 @@ namespace StardewValleyCalculator
             SeasonLocationView.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCells);
             SeasonLocationView.AutoSize = false;
             SeasonLocationView.DoubleBuffered(true);
-
+            
             for (int row = 0; row < SeasonLocationView.Rows.Count; row++)
             {
+
                 Weather rowWeather = (Weather) Enum.Parse(typeof (Weather),
-                    (string) SeasonLocationView.Rows[row].Cells[3].Value);
+                    (string) SeasonLocationView.Rows[row].Cells["Weather"].Value);
                 Color backColor;
                 switch (rowWeather)
                 {
@@ -165,12 +165,18 @@ namespace StardewValleyCalculator
                 }
 
 
-                for (int column = 4; column < 24; column++)
+                for (int column = 0; column < SeasonLocationView.ColumnCount; column++)
                 {
-                    if ((string) SeasonLocationView.Rows[row].Cells[column].Value == "■")
+                    
+                    if (SeasonLocationView.Rows[row].Cells[column].ValueType == typeof(bool))
                     {
-                        SeasonLocationView.Rows[row].Cells[column].Style.BackColor = backColor;
-                        SeasonLocationView.Rows[row].Cells[column].Value = null;
+                        if ((bool)SeasonLocationView.Rows[row].Cells[column].Value)
+                        {
+                            SeasonLocationView.Rows[row].Cells[column].Style.BackColor = backColor;
+                            
+                        }
+                        SeasonLocationView.Rows[row].Cells[column].ValueType = typeof(string);
+                        SeasonLocationView.Rows[row].Cells[column].Value = DBNull.Value;
                     }
                 }
             }
@@ -207,34 +213,53 @@ namespace StardewValleyCalculator
         public Fish Fish { get; set; }
         public string LocName { get; set; }
         public Season Season { get; set; }
+        public static Data Data { get; private set; } = Program.Data;
 
         public static DataTable ToDataTable(IEnumerable<ShowFishInfo> data)
         {
             DataTable dt = new DataTable();
             dt.Columns.Add("FishName");
-            dt.Columns.Add("LocName");
-            dt.Columns.Add("Season");
+            var locNames = Data.LocationList.Select(item => item.Name).Distinct().ToList();
+            var locNameColumns = locNames.Select(name=>new DataColumn(name,typeof(bool))).ToArray();
+            dt.Columns.AddRange(locNameColumns);
+            var seasonNames = Enum.GetNames(typeof (Season));
+            var seasonColumns = seasonNames
+                .Select(seasonName => new DataColumn(seasonName, typeof(bool))).ToArray();
+            dt.Columns.AddRange(seasonColumns);
             dt.Columns.Add("Weather");
             for (int time = 6; time < 26; time++)
             {
-                dt.Columns.Add(time.ToString("D2"));
+                dt.Columns.Add(time.ToString("D2"), typeof(bool));
             }
 
-            foreach (ShowFishInfo info in data)
-            {
-                List<string> row = new List<string>
+            var arrgData = data.GroupBy(item => item.Fish).Select(g =>
+                new
                 {
-                    info.Fish.Name, info.LocName, info.Season.ToString(), info.Fish.Weather.ToString()
+                    Fish = g.Key,
+                    Location = locNames.ToDictionary(name => name, name => g.Any(i => i.LocName == name)),
+                    Season = seasonNames.ToDictionary(name => name, name => g.Any(i => i.Season.ToString() == name)),
+                }).ToList();
+
+            foreach (var info in arrgData)
+            {
+                List<object> row = new List<object>
+                {
+                    info.Fish.Name
                 };
+                var locValues = locNames.Select(name => info.Location[name]).Cast<object>().ToList();
+                row.AddRange(locValues);
+                var seasonValues = seasonNames.Select(name => info.Season[name]).Cast<object>().ToList();
+                row.AddRange(seasonValues);
+                row.Add(info.Fish.Weather.ToString());
                 for (int time = 6; time < 26; time++)
                 {
                     if (info.Fish.TimeRangeStart <= time && time < info.Fish.TimeRangeFinish)
                     {
-                        row.Add("■");
+                        row.Add(true);
                     }
                     else
                     {
-                        row.Add("");
+                        row.Add(false);
                     }
                 }
                 dt.Rows.Add(row.ToArray());
